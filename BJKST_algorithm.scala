@@ -14,6 +14,8 @@ object BJKST{
     def BJKST[A](stream: Stream[A], b: Double, c: Double, epsilon: Double){        
         var B: Map[Int, Int] = Map() //map to hold our pairs key (hash function), number of zeroes at the end of binary representation
         var z: Int = 0 //minimal number of zeroes in the bucket
+        //var hHashLen: Int = stream.length //hash function h mapping n->n for modulo
+        //var gHashLen: Int = (b*(1/(epsilon*epsilon*epsilon*epsilon))*((scala.math.log(stream.size))*(scala.math.log(stream.size)))).toInt for modulo
         var hHashLen: Int = stream.length.toString().length() //hash function h mapping n->n
         var gHashLen: Int = (b*(1/(epsilon*epsilon*epsilon*epsilon))*((scala.math.log(stream.size))*(scala.math.log(stream.size)))).toInt.toString().length() //hash function g mapping n->be^(-4)log^2(n)
         var hHashSeed: Int = 1 //seed for first hash functon
@@ -25,6 +27,7 @@ object BJKST{
             var hHashValue: Int = MurmurHash3.stringHash(token.toString, hHashSeed) //calculating the value of h with murmur3
             hHashValue = hHashValue.abs //taking absolute value
             hHashValue = hHashValue.toString().slice(0, hHashLen).toInt //murmur3 gives us string of length m, we make a substring of length n/10 starting at 1st char
+            //hHashValue = hHashValue % (hHashLen + 1) //modulo
 
             var hHashValueBinary = hHashValue.toBinaryString //turning h into binary string
             var hHashValueBinaryReverse = hHashValueBinary.reverse //reversing it so 0's at the start
@@ -46,6 +49,7 @@ object BJKST{
                 var gHashValue: Int = MurmurHash3.stringHash(token.toString, gHashSeed) //calculating g
                 gHashValue = gHashValue.abs //absolute value of g
                 gHashValue = gHashValue.toString().slice(0, gHashLen).toInt //murmur3 gives us string of length m, we make a substring of length n starting at 1st char
+                //gHashValue = gHashValue % (gHashLen + 1) //modulo
 
                 B += (gHashValue -> zeros) //add key (g) to mapping with value (number of zeroes at the end of binary representation)
 
