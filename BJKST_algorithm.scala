@@ -1,6 +1,7 @@
 import scala.collection._
 import scala.util.hashing.MurmurHash3
 import util.control.Breaks._
+import java.io._
 
 class Book(val attribute: String){
     // println("Book class " + attribute)
@@ -11,13 +12,13 @@ class Book(val attribute: String){
 
 object BJKST{
 
-    def BJKST[A](stream: Stream[A], b: Double, c: Double, epsilon: Double){        
+    def BJKST[A](stream: Stream[A], b: Double, c: Double, epsilon: Double): Double ={        
         var B: Map[Int, Int] = Map() //map to hold our pairs key (hash function), number of zeroes at the end of binary representation
         var z: Int = 0 //minimal number of zeroes in the bucket
-        //var hHashLen: Int = stream.length //hash function h mapping n->n for modulo
-        //var gHashLen: Int = (b*(1/(epsilon*epsilon*epsilon*epsilon))*((scala.math.log(stream.size))*(scala.math.log(stream.size)))).toInt for modulo
-        var hHashLen: Int = stream.length.toString().length() //hash function h mapping n->n
-        var gHashLen: Int = (b*(1/(epsilon*epsilon*epsilon*epsilon))*((scala.math.log(stream.size))*(scala.math.log(stream.size)))).toInt.toString().length() //hash function g mapping n->be^(-4)log^2(n)
+        var hHashLen: Int = stream.length //hash function h mapping n->n for modulo
+        var gHashLen: Int = (b*(1/(epsilon*epsilon*epsilon*epsilon))*((scala.math.log(stream.size))*(scala.math.log(stream.size)))).toInt //for modulo
+        //var hHashLen: Int = stream.length.toString().length() //hash function h mapping n->n
+        //var gHashLen: Int = (b*(1/(epsilon*epsilon*epsilon*epsilon))*((scala.math.log(stream.size))*(scala.math.log(stream.size)))).toInt.toString().length() //hash function g mapping n->be^(-4)log^2(n)
         var hHashSeed: Int = 1 //seed for first hash functon
         var gHashSeed: Int = 2 //seed for 2nd hash function
         var g: Int = 0
@@ -26,8 +27,8 @@ object BJKST{
         for(token <- stream){    //going through every item in stream   
             var hHashValue: Int = MurmurHash3.stringHash(token.toString, hHashSeed) //calculating the value of h with murmur3
             hHashValue = hHashValue.abs //taking absolute value
-            hHashValue = hHashValue.toString().slice(0, hHashLen).toInt //murmur3 gives us string of length m, we make a substring of length n/10 starting at 1st char
-            //hHashValue = hHashValue % (hHashLen + 1) //modulo
+            //hHashValue = hHashValue.toString().slice(0, hHashLen).toInt //murmur3 gives us string of length m, we make a substring of length n/10 starting at 1st char
+            hHashValue = hHashValue % (hHashLen + 1) //modulo
 
             var hHashValueBinary = hHashValue.toBinaryString //turning h into binary string
             var hHashValueBinaryReverse = hHashValueBinary.reverse //reversing it so 0's at the start
@@ -48,8 +49,8 @@ object BJKST{
             if (zeros >= z){ //if the number of zeroes in our item is greater than minimal number of zeroes to get into bucket we add it to the bucket
                 var gHashValue: Int = MurmurHash3.stringHash(token.toString, gHashSeed) //calculating g
                 gHashValue = gHashValue.abs //absolute value of g
-                gHashValue = gHashValue.toString().slice(0, gHashLen).toInt //murmur3 gives us string of length m, we make a substring of length n starting at 1st char
-                //gHashValue = gHashValue % (gHashLen + 1) //modulo
+                //gHashValue = gHashValue.toString().slice(0, gHashLen).toInt //murmur3 gives us string of length m, we make a substring of length n starting at 1st char
+                gHashValue = gHashValue % (gHashLen + 1) //modulo
 
                 B += (gHashValue -> zeros) //add key (g) to mapping with value (number of zeroes at the end of binary representation)
 
@@ -69,6 +70,7 @@ object BJKST{
 
         var bucketSize = (B.size)*(scala.math.pow(2,z)) //estimate the number of unique elements in the stream to be size of bucket (size of map) * 2^(minimal value of zeroes to get into mapping)
         print("n = " + stream.size + ", b = " + b + ", c = " + c + ", epsilon = " + epsilon + "\nEstimated bucket size = " + bucketSize + "\n") //print our result
+        return bucketSize
     }
 
     // Stream of objects + arguments needed by algorithms
@@ -109,10 +111,23 @@ object BJKST{
             var r = scala.util.Random
             newList.append(r.nextInt(1000))
         }
-        StreamObjects(stream=newList.toStream, b=b, c=c, epsilon=epsilon)
+        println("Unique elements in list: " + newList.toSet.size)
 
-        var aList = List(1,2,4,3,4,3,4,5,4,6,7,8,9,9,9,9,9,9,11,12,13,14,15,16,17,18,19,20,1,1,1,2,2,2)
-        val aListStream = aList.toStream
-        StreamObjects(stream=aListStream, b=b, c=c, epsilon=epsilon)
+        val pw = new PrintWriter(new File("Bucket.txt")) //saving to file
+
+        for(i<-1 to 250){ //loop to change bucket size from 4 to 1000
+            var Out = StreamObjects(stream=newList.toStream, b=b, c=i, epsilon=epsilon) //calculate estimated unique elements
+
+            //doesnt work cause we're calling stream objects not BJKST
+
+            pw.write(i + "\t" + Out + "\n") //doesnt work cause we're calling stream objects not BJKST
+        }
+        pw.close
+        
+        //StreamObjects(stream=newList.toStream, b=b, c=c, epsilon=epsilon)
+
+        //var aList = List(1,2,4,3,4,3,4,5,4,6,7,8,9,9,9,9,9,9,11,12,13,14,15,16,17,18,19,20,1,1,1,2,2,2)
+        //val aListStream = aList.toStream
+        //StreamObjects(stream=aListStream, b=b, c=c, epsilon=epsilon)
     }
 }
