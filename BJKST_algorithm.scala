@@ -113,14 +113,14 @@ object BJKST{
         }
         println("Unique elements in list: " + newList.toSet.size)
 
-        val pw = new PrintWriter(new File("Bucket.txt")) //saving to file
+        val pw = new PrintWriter(new File("Epsilon.txt")) //saving to file
 
-        for(i<-1 to 250){ //loop to change bucket size from 4 to 1000
-            var Out = StreamObjects(stream=newList.toStream, b=b, c=i, epsilon=epsilon) //calculate estimated unique elements
+        for(i<-1 to 50){ //loop to change bucket size from 4 to 1000
+            var Out = BJKST(stream=newList.toStream, b=b, c=c, epsilon=(1.0 / i)) //calculate estimated unique elements
 
             //doesnt work cause we're calling stream objects not BJKST
 
-            pw.write(i + "\t" + Out + "\n") //doesnt work cause we're calling stream objects not BJKST
+            pw.write((1.0 / i) + "\t" + Out + "\n") //doesnt work cause we're calling stream objects not BJKST
         }
         pw.close
         
