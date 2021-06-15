@@ -110,7 +110,7 @@ object BJKST{
 
         val pw = new PrintWriter(new File("Epsilon.txt")) //saving to file
 
-        for(i<-1 to 50){ //loop to change bucket size from 4 to 1000
+        for(i<-1 to 50){ //loop to change epsilon
             var Out = BJKST(stream=newList.toStream, b=b, c=c, epsilon=(1.0 / i)) //calculate estimated unique elements
             pw.write((1.0 / i) + "\t" + Out + "\n")
         }
